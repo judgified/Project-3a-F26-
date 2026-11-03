@@ -161,3 +161,26 @@ class TestUnparser extends AnyFunSuite:
     }
 
 end TestUnparser
+
+class TestMiniJSRepl extends AnyFunSuite:
+
+  test("REPL output includes the echoed source, AST, pretty JSON, and unparsed source") {
+    val output = MiniJSRepl.format("x = 5;")
+    assert(output.contains("You entered: x = 5;"))
+    assert(output.contains("The parsed statements are:\nBlock(List(Assign(Variable(x),Constant(5))))"))
+    assert(output.contains("The corresponding JSON structure is:\n["))
+    assert(output.contains("The unparsed statements are:\nx = 5;"))
+  }
+
+  test("REPL output reports malformed input") {
+    val output = MiniJSRepl.format("x = ;")
+    assert(output.startsWith("You entered: x = ;\nParse error at line 1, column"))
+  }
+
+  test("multiline REPL input parses as one program and formats each statement separately") {
+    val output = MiniJSRepl.format("x = 5;\ny = 7;")
+    assert(output.contains("You entered: x = 5;\ny = 7;"))
+    assert(output.endsWith("The unparsed statements are:\nx = 5;\ny = 7;"))
+  }
+
+end TestMiniJSRepl
