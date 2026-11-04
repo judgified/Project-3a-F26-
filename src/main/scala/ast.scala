@@ -12,7 +12,6 @@ enum Expr derives CanEqual:
   case Mod(left: Expr, right: Expr)
 
 /** Statements: imperative constructs executed for their effect. */
-
 enum Statement derives CanEqual:
   case ExprStatement(expr: Expr)
   case Assign(left: Expr.Variable, right: Expr)

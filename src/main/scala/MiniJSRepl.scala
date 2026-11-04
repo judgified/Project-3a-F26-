@@ -1,6 +1,6 @@
 package edu.luc.cs.laufer.cs371.minijs
 
-import org.jline.reader.{EndOfFileException, LineReaderBuilder}
+import org.jline.reader.{EndOfFileException, LineReader, LineReaderBuilder, UserInterruptException}
 import org.jline.terminal.TerminalBuilder
 import org.json4s.native.JsonMethods.{pretty, render}
 import behaviors.*
@@ -23,18 +23,26 @@ object MiniJSRepl:
         s"Parse error at line ${failure.next.pos.line}, column ${failure.next.pos.column}: ${failure.msg}"
     s"You entered: $input\n$result"
 
+  /** Reads lines until a blank one. Ctrl-C discards everything entered so far and yields an empty program. */
+  def readProgram(reader: LineReader): String =
+    val lines = List.newBuilder[String]
+    try
+      var line = reader.readLine("minijs> ")
+      while !line.isBlank do
+        lines += line
+        line = reader.readLine(".....> ")
+      lines.result().mkString("\n")
+    catch
+      case _: UserInterruptException => ""
+
   def main(args: Array[String]): Unit =
     val terminal = TerminalBuilder.builder().system(true).build()
     try
       val reader = LineReaderBuilder.builder().terminal(terminal).build()
       try
         while true do
-          val lines = List.newBuilder[String]
-          var line = reader.readLine("minijs> ")
-          while line.nonEmpty do
-            lines += line
-            line = reader.readLine(".....> ")
-          println(format(lines.result().mkString("\n")))
+          val input = readProgram(reader)
+          if !input.isBlank then println(format(input))
       catch
         case _: EndOfFileException => ()
     finally
