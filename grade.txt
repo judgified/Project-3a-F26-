@@ -1,0 +1,68 @@
+========================================================================
+COMP 371 Project 3a: MiniJS Front End - Evaluation Report
+========================================================================
+Team: Team_1
+Tag: p3a (commit 71c49f1)
+
+------------------------------------------------------------------------
+RUBRIC BREAKDOWN & DETAILED EVALUATION
+------------------------------------------------------------------------
+
+1. Grammar and Resulting AST: 1.5 / 1.5
+   - Expressions and Precedence: Complete. `expression` (+, -) and `term` (*, /, %) implemented using `chainl1` for left-associativity. Multiplicative operators bind tighter than additive ones. `factor` correctly handles unary plus (dropped) and unary minus (`UMinus`). Parenthesized expressions supported.
+   - Identifiers: Complete. Defined as `[a-zA-Z][a-zA-Z0-9_]*` with explicit rejection of reserved keywords (`if`, `else`, `while`). Keyword tokens match on word boundaries (`\b`), correctly allowing identifiers like `iffy` or `whiley`.
+   - Statements & Case Classes: Complete. Well-structured `enum Expr` and `enum Statement` deriving `CanEqual` in `src/main/scala/ast.scala`. Supports `ExprStatement`, `Assign(Variable, Expr)`, `Cond(Expr, Block, Option[Block])`, `Loop(Expr, Block)`, and `Block(List[Statement])`.
+
+2. Parser: 1.5 / 1.5
+   - Required Grammar Productions: Implemented in `src/main/scala/MiniJSParser.scala`. Covers expressions, terms, factors, assignments, conditionals, while loops, and blocks.
+   - Top-Level repl Production: `def repl: Parser[List[Statement]] = rep(statement)` with `parse(input)` using `parseAll(repl, input)`. Handles zero or more statements as well as empty programs.
+   - Valid and Invalid Syntax: Accurately parses all specification examples. Rejects invalid syntax (tested extensively with 33 distinct invalid syntax cases, including missing semicolons, malformed control structures, reserved keyword misuse, and integer overflow).
+
+3. toJSON: 1.0 / 1.0
+   - Implemented in `src/main/scala/behaviors.scala` (`toJson` functions).
+   - Generates nested JSON structures using json4s (`JObject`, `JArray`, `JInt`, `JString`).
+   - Supports all AST constructs: numbers as integer values, variables/unary minus as single-key objects, binary operators as arrays of operands, assignments with `left`/`right`, conditionals with `guard`/`then` and optional `else`, loops with `guard`/`body`, and blocks/programs as arrays.
+
+4. Unparser / Pretty Printer: 1.0 / 1.0
+   - Implemented in `src/main/scala/behaviors.scala` (`unparse` functions).
+   - Expressions converted to infix notation with minimal parentheses based on operator precedence and left-associativity.
+   - Each statement appears on a separate line terminated with a semicolon.
+   - Indentation: Two spaces per nesting level (`"  " * depth`).
+   - Proper formatting of `if` / `else` and `while` loops with braces.
+
+5. Testing: 1.0 / 1.0
+   - Comprehensive test suite across `TestMiniJSParser.scala`, `TestBehaviors.scala`, and `TestFixtures.scala`.
+   - Build & Test Results: All 92 tests passed across 4 test suites (`sbt test` completed with exit code 0).
+   - Excellent test coverage including precedence, associativity, unary operators, identifier constraints, empty blocks/programs, valid fixture programs, round-trip unparse-parse property tests, and REPL formatting/error handling.
+
+6. REPL: 1.0 / 1.0
+   - Implemented in `src/main/scala/MiniJSRepl.scala`.
+   - Repeated user input loop.
+   - Primary prompt (`minijs> `) and continuation prompt (`.....> `).
+   - Echoes user input (`You entered: ...`).
+   - Displays AST via `toString`.
+   - Displays pretty-printed JSON.
+   - Displays unparsed MiniJS source.
+   - Gracefully reports syntax errors without terminating the session.
+
+------------------------------------------------------------------------
+EXTRA CREDIT
+------------------------------------------------------------------------
+- JLine3 Integration: AWARDED (+0.5)
+  Evidence: `build.sbt` includes `"org.jline" % "jline" % "4.4.8"`. `MiniJSRepl.scala` initializes `TerminalBuilder` and `LineReaderBuilder`, with robust handling of `UserInterruptException` (Ctrl-C) and `EndOfFileException` (Ctrl-D).
+- Multi-line Input: AWARDED (+0.5)
+  Evidence: `readProgram` buffers input lines until a blank line is entered, showing `.....> ` on continuation lines.
+- Successive else-if Branches: Not implemented.
+- F-algebraic AST and Droste Unparser: Not implemented.
+
+Extra Credit Total: +1.0
+
+------------------------------------------------------------------------
+FINAL GRADE
+------------------------------------------------------------------------
+Base Score: 7.0 / 7.0
+Extra Credit: +1.0
+Final Score: 8.0 / 7.0
+
+Feedback: Outstanding submission. Clean architecture with clear separation of AST, parser combinators, behaviors, and REPL. Comprehensive test suite and verified extra credit implementations.
+========================================================================
