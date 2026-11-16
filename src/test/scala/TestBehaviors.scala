@@ -180,7 +180,32 @@ class TestMiniJSRepl extends AnyFunSuite:
   test("multiline REPL input parses as one program and formats each statement separately") {
     val output = MiniJSRepl.format("x = 5;\ny = 7;")
     assert(output.contains("You entered: x = 5;\ny = 7;"))
-    assert(output.endsWith("The unparsed statements are:\nx = 5;\ny = 7;"))
+    assert(output.contains("The unparsed statements are:\nx = 5;\ny = 7;"))
+    assert(output.endsWith("The result is:\nNum(0)"))
+  }
+
+  test("REPL reports evaluation results") {
+    val output = MiniJSRepl.format("1 + 2;")
+    assert(output.endsWith("The result is:\nNum(3)"))
+  }
+
+  test("REPL memory persists across inputs") {
+    val store = evaluator.newStore()
+    assert(MiniJSRepl.format("x = 3;", store).endsWith("The result is:\nNum(0)"))
+    assert(MiniJSRepl.format("x + 1;", store).endsWith("The result is:\nNum(4)"))
+  }
+
+  test("REPL reports runtime failures and continues with prior memory") {
+    val store = evaluator.newStore()
+    val failed = MiniJSRepl.format("x = 3; missing;", store)
+    assert(failed.endsWith("Error in input 'x = 3; missing;': missing"))
+    assert(MiniJSRepl.format("x + 1;", store).endsWith("The result is:\nNum(4)"))
+  }
+
+  test("REPL reports parse errors and accepts the next input") {
+    val store = evaluator.newStore()
+    assert(MiniJSRepl.format("x = ;", store).contains("Parse error at line 1, column"))
+    assert(MiniJSRepl.format("2 + 2;", store).endsWith("The result is:\nNum(4)"))
   }
 
 end TestMiniJSRepl

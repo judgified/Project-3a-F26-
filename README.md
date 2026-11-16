@@ -7,8 +7,10 @@ This project implements the parser and REPL for MiniJS, a small imperative langu
 Start the application with `sbt run`. Enter a program after the `minijs>` prompt.
 For multiline programs, enter each line and submit the program with a blank line.
 The REPL echoes the source, prints the parsed AST and pretty-printed JSON, and
-shows the unparsed source. A blank line at the prompt is ignored, Ctrl-C discards
-the current input, and Ctrl-D (end of file) exits the REPL.
+shows the unparsed source and evaluation result. Variables remain in memory
+between inputs. Parse and runtime errors are reported without exiting the REPL.
+A blank line at the prompt is ignored, Ctrl-C discards the current input, and
+Ctrl-D (end of file) exits the REPL.
 
 Run the test suite with `sbt test`.
 

@@ -33,3 +33,14 @@ Worth fixing (small code issues)
 - A blank line at the prompt runs an empty program, printing Block(List()) and empty JSON. It should just show the prompt again.
 - README typo: "output form the sbt run" should be "output from".
 - Stray blank line in ast.scala: Blake's commit added one between the Statement doc comment and the enum, so the comment no longer attaches to it.
+
+**User:** Could you implement the REPL evaluation and see how the memory behavior is changed through the REPL?
+
+**Agent:** I reviewed the REPL tests and the existing evaluator, then added
+evaluation output and reused one store across REPL inputs. I expanded the
+tests to cover result output, memory persistence, and continuing after parse
+or runtime failures. An initial test failure showed that the expected error
+message needed to include the input's semicolon; after correcting
+the expectation, all 123 tests passed.
+
+
