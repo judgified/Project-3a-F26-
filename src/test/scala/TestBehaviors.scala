@@ -170,42 +170,73 @@ class TestMiniJSRepl extends AnyFunSuite:
     assert(output.contains("The parsed statements are:\nBlock(List(Assign(Variable(x),Constant(5))))"))
     assert(output.contains("The corresponding JSON structure is:\n["))
     assert(output.contains("The unparsed statements are:\nx = 5;"))
+    assert(output.endsWith("It evaluates to Success(Num(0))\nMemory: Map(x -> Num(5))"))
   }
 
-  test("REPL output reports malformed input") {
+  test("REPL output reports malformed input and unchanged memory") {
     val output = MiniJSRepl.format("x = ;")
     assert(output.startsWith("You entered: x = ;\nParse error at line 1, column"))
+    assert(output.endsWith("\nMemory: Map()"))
   }
 
   test("multiline REPL input parses as one program and formats each statement separately") {
     val output = MiniJSRepl.format("x = 5;\ny = 7;")
     assert(output.contains("You entered: x = 5;\ny = 7;"))
-    assert(output.contains("The unparsed statements are:\nx = 5;\ny = 7;"))
-    assert(output.endsWith("The result is:\nNum(0)"))
+    assert(output.contains("The unparsed statements are:\nx = 5;\ny = 7;\nIt evaluates to Success(Num(0))"))
+    assert(output.contains("x -> Num(5)") && output.contains("y -> Num(7)"))
   }
 
   test("REPL reports evaluation results") {
     val output = MiniJSRepl.format("1 + 2;")
-    assert(output.endsWith("The result is:\nNum(3)"))
+    assert(output.endsWith("It evaluates to Success(Num(3))\nMemory: Map()"))
   }
 
   test("REPL memory persists across inputs") {
     val store = evaluator.newStore()
-    assert(MiniJSRepl.format("x = 3;", store).endsWith("The result is:\nNum(0)"))
-    assert(MiniJSRepl.format("x + 1;", store).endsWith("The result is:\nNum(4)"))
+    assert(MiniJSRepl.format("x = 3;", store).endsWith("It evaluates to Success(Num(0))\nMemory: Map(x -> Num(3))"))
+    assert(MiniJSRepl.format("x + 1;", store).endsWith("It evaluates to Success(Num(4))\nMemory: Map(x -> Num(3))"))
   }
 
   test("REPL reports runtime failures and continues with prior memory") {
     val store = evaluator.newStore()
     val failed = MiniJSRepl.format("x = 3; missing;", store)
-    assert(failed.endsWith("Error in input 'x = 3; missing;': missing"))
-    assert(MiniJSRepl.format("x + 1;", store).endsWith("The result is:\nNum(4)"))
+    assert(failed.endsWith("It evaluates to Failure(java.lang.NoSuchFieldException: missing)\nMemory: Map(x -> Num(3))"))
+    assert(MiniJSRepl.format("x + 1;", store).endsWith("It evaluates to Success(Num(4))\nMemory: Map(x -> Num(3))"))
   }
 
   test("REPL reports parse errors and accepts the next input") {
     val store = evaluator.newStore()
     assert(MiniJSRepl.format("x = ;", store).contains("Parse error at line 1, column"))
-    assert(MiniJSRepl.format("2 + 2;", store).endsWith("The result is:\nNum(4)"))
+    assert(MiniJSRepl.format("2 + 2;", store).endsWith("It evaluates to Success(Num(4))\nMemory: Map()"))
+  }
+
+  test("memory is shown for any number of variables") {
+    val store = evaluator.newStore()
+    assert(MiniJSRepl.memory(store) == "Memory: Map()")
+    MiniJSRepl.format("a = 1; b = 2; c = 3; d = 4; e = 5; f = 6;", store)
+    val shown = MiniJSRepl.memory(store)
+    assert(shown.startsWith("Memory: Map(") && shown.endsWith(")"))
+    assert(List("a", "b", "c", "d", "e", "f").zipWithIndex.forall((n, i) => shown.contains(s"$n -> Num(${i + 1})")))
+  }
+
+  test("REPL replays the sample sessions from the assignment") {
+    assert(MiniJSRepl.format("x = 3;").endsWith(
+      "It evaluates to Success(Num(0))\nMemory: Map(x -> Num(3))"))
+
+    assert(MiniJSRepl.format("{ x = 7; x; }").endsWith(
+      "It evaluates to Success(Num(7))\nMemory: Map(x -> Num(7))"))
+
+    val store = evaluator.newStore()
+    assert(MiniJSRepl.format("x = 2; y = 3; r = 0; while (y) { r = r + x ; y = y - 1; }", store).endsWith(
+      "It evaluates to Success(Num(0))\nMemory: Map(r -> Num(6), x -> Num(2), y -> Num(0))"))
+    assert(MiniJSRepl.format("z;", store).endsWith(
+      "It evaluates to Failure(java.lang.NoSuchFieldException: z)\nMemory: Map(r -> Num(6), x -> Num(2), y -> Num(0))"))
+  }
+
+  test("memory lists variables in alphabetical order") {
+    val store = evaluator.newStore()
+    MiniJSRepl.format("zeta = 1; alpha = 2; mid = 3;", store)
+    assert(MiniJSRepl.memory(store) == "Memory: Map(alpha -> Num(2), mid -> Num(3), zeta -> Num(1))")
   }
 
 end TestMiniJSRepl
