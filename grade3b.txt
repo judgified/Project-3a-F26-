@@ -1,0 +1,42 @@
+COMP 371 Project 3b – Team 1
+
+Repository: Team_1
+Commit reviewed: ba2cdae45df9e0ab2f7e770b09d9fb561239c4d9 (ba2cdae)
+Branch: main
+Working-tree status: clean
+Submission status: Provisional (no p3b tag found; evaluated commit ba2cdae on main; pending Sakai submission hash verification)
+
+1. Variable: 1/1
+- Evidence: evaluator.scala line 32 retrieves variables using store.getOrElse(n, throw NoSuchFieldException(n)). Undefined variables throw NoSuchFieldException and are wrapped in Try by interpret.
+- Issues: None.
+
+2. Assignment: 1/1
+- Evidence: evaluator.scala lines 42-44 evaluates RHS, assigns to store(n), and returns Void (Num(0)). Supports variable creation and updates.
+- Issues: None.
+
+3. Conditional: 0.5/0.5
+- Evidence: evaluator.scala lines 28 & 45 evaluates guard using isTrue(g) (nonzero is true) and returns the value of the evaluated branch, or Void when else is omitted.
+- Issues: None.
+
+4. Loop: 0.5/0.5
+- Evidence: evaluator.scala lines 46-48 executes while isTrue(g), re-evaluating each iteration, updates store, and returns Void.
+- Issues: None.
+
+5. Block: 1/1
+- Evidence: evaluator.scala lines 49-53 evaluates statements in sequence via foldLeft(Void), returns the value of the last statement, and retains store mutations.
+- Issues: None.
+
+6. Testing: 2/2
+- Tests inspected: TestEvaluator.scala (27 tests), TestMiniJSRepl.scala (10 tests), TestToJson, TestMiniJSParser, TestUnparser.
+- Test command and actual results: `sbt test` -> 126 tests run, 126 succeeded, 0 failed. Exit code 0.
+- Coverage strengths: Outstanding suite covering stack safety (1M iterations), untaken branch skipping, NoSuchFieldException, and all assignment examples.
+- Missing or weak tests: None.
+
+7. REPL Integration: 1/1
+- Evidence: MiniJSRepl.scala maintains single mutable store across inputs, displays sorted Memory before the prompt and after evaluation, prints evaluation results, and wraps failures in Try. All 4 handout examples match expected results.
+- Issues: None.
+
+TOTAL: 7/7
+
+Overall feedback:
+- Exemplary implementation with clean code, complete test coverage, and comprehensive REPL integration.
